@@ -46,7 +46,7 @@ func main() {
 	// db := database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
 	database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
 
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
@@ -62,8 +62,8 @@ func main() {
 
 	serviceHandler := handler.NewServiceHandler()
 
-	grpcServer.Serve(lis)
-
 	service.RegisterHelloWorldServiceServer(grpcServer, serviceHandler)
+
+	grpcServer.Serve(lis)
 
 }

@@ -4,8 +4,13 @@ package common;
 
 option go_package = "github.com/arthurhzna/Golang_gRPC/pb/common";
 
+message ValidateError {
+    string field = 1;
+    string message = 2;
+}
 message BaseResponse {
     int64 status_code = 1;
     string message = 2;
     bool is_error = 3; 
+    repeated ValidateError validate_errors = 4; // more than one validation error (repeated field)
 }

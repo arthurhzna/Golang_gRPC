@@ -23,8 +23,31 @@ func ErrorMiddleware(ctx context.Context, req any, info *grpc.UnaryServerInfo, h
 	}()
 
 	res, err := handler(ctx, req)
+
+	/*
+			Request
+		    ↓
+			┌─────────────────────────────────────────┐
+			│ ErrorMiddleware (start)                 │
+			│ - Setup defer recover                   │
+			│   ↓                                     │
+			│  ┌───────────────────────────────────┐  │
+			│  │ HelloWorld Handler                │  │
+			│  │ - Validation                      │  │
+			│  │ - Process business logic          │  │
+			│  │ - Return response/error           │  │
+			│  └───────────────────────────────────┘  │
+			│   ↓                                     │
+			│ - Handle error if exists                │
+			│ - Wrap error with codes.Internal        │
+			└─────────────────────────────────────────┘
+			↓
+			Response
+	*/
+
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
+		// return nil, err // original error from the handlers
 	}
 	return res, nil
 }
