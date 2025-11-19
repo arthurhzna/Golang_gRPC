@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/arthurhzna/Golang_gRPC/pb/common";
+
+message BaseResponse {
+    int64 status_code = 1;
+    string message = 2;
+    bool is_error = 3; 
+}
