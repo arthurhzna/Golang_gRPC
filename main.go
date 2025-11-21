@@ -7,7 +7,9 @@ import (
 	"os"
 
 	"github.com/arthurhzna/Golang_gRPC/internal/handler"
-	"github.com/arthurhzna/Golang_gRPC/pb/service"
+	"github.com/arthurhzna/Golang_gRPC/internal/repository"
+	"github.com/arthurhzna/Golang_gRPC/internal/service"
+	"github.com/arthurhzna/Golang_gRPC/pb/auth"
 	"github.com/arthurhzna/Golang_gRPC/pkg/database"
 	"github.com/arthurhzna/Golang_gRPC/pkg/grpcmiddlerware"
 	"github.com/joho/godotenv"
@@ -20,9 +22,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-
-	// db := database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
-	database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
 
 	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
@@ -38,9 +37,12 @@ func main() {
 		reflection.Register(grpcServer)
 	}
 
-	serviceHandler := handler.NewServiceHandler()
+	db := database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
+	authRepository := repository.NewAuthRepository(db)
+	authService := service.NewAuthService(authRepository)
+	authHandler := handler.NewAuthHandler(authService)
 
-	service.RegisterHelloWorldServiceServer(grpcServer, serviceHandler)
+	auth.RegisterAuthServiceServer(grpcServer, authHandler)
 
 	grpcServer.Serve(lis)
 

@@ -2,6 +2,11 @@ package entity
 
 import "time"
 
+const (
+	UserRoleAdmin    = "admin"
+	UserRoleCustomer = "custumer"
+)
+
 type UserRole struct {
 	Id        string
 	Name      string
@@ -12,7 +17,7 @@ type UserRole struct {
 	UpdatedBy *string
 	DeletedAt *time.Time
 	DeletedBy *string
-	IsDelated bool
+	IsDeleted bool
 }
 
 type User struct {
@@ -23,9 +28,9 @@ type User struct {
 	RoleCode  string
 	CreatedAt time.Time
 	CreatedBy *string
-	UpdateAt  time.Time
+	UpdatedAt time.Time
 	UpdatedBy *string
 	DeletedAt *time.Time
 	DeletedBy *string
-	IsDelated bool
+	IsDeleted bool
 }

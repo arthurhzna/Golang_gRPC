@@ -8,7 +8,7 @@ import (
 	"github.com/arthurhzna/Golang_gRPC/pb/service"
 )
 
-type IServiceHandler interface {
+// type IServiceHandler interface {
 	// service.HelloWorldServiceServer // interface from the service package
 	/* if im using this --> service.HelloWorldServiceServer is the interface from the service package
 
@@ -24,8 +24,8 @@ type IServiceHandler interface {
 		mustEmbedUnimplementedHelloWorldServiceServer()
 	}
 	*/
-	HelloWorld(ctx context.Context, req *service.HelloWorldRequest) (*service.HelloWorldResponse, error)
-}
+// 	HelloWorld(ctx context.Context, req *service.HelloWorldRequest) (*service.HelloWorldResponse, error)
+// }
 
 type serviceHandler struct {
 	service.UnimplementedHelloWorldServiceServer // parent struct from the service package
