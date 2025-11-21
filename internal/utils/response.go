@@ -2,6 +2,8 @@ package utils
 
 import (
 	"github.com/arthurhzna/Golang_gRPC/pb/common"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func SuccessResponse(message string) *common.BaseResponse {
@@ -27,4 +29,8 @@ func BadRequestResponse(message string) *common.BaseResponse {
 		Message:    message,
 		IsError:    true,
 	}
+}
+
+func UnaunthorizedResponse() error {
+	return status.Errorf(codes.Unauthenticated, "Unauthorized")
 }

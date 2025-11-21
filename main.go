@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/arthurhzna/Golang_gRPC/internal/grpcmiddlerware"
 	"github.com/arthurhzna/Golang_gRPC/internal/handler"
 	"github.com/arthurhzna/Golang_gRPC/internal/repository"
 	"github.com/arthurhzna/Golang_gRPC/internal/service"
 	"github.com/arthurhzna/Golang_gRPC/pb/auth"
 	"github.com/arthurhzna/Golang_gRPC/pkg/database"
-	"github.com/arthurhzna/Golang_gRPC/pkg/grpcmiddlerware"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -32,20 +32,22 @@ func main() {
 	}
 	defer lis.Close()
 
-	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(
-		grpcmiddlerware.ErrorMiddleware,
-	))
-
-	if os.Getenv("ENVIRONMENT") == "DEV" {
-		reflection.Register(grpcServer)
-	}
-
 	cacheService := gocache.New(time.Hour*24, time.Hour)
+	authMiddleware := grpcmiddlerware.NewAuthMiddleware(cacheService)
 
 	db := database.ConnectDb(context.Background(), os.Getenv("DB_URL"))
 	authRepository := repository.NewAuthRepository(db)
 	authService := service.NewAuthService(authRepository, cacheService)
 	authHandler := handler.NewAuthHandler(authService)
+
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		grpcmiddlerware.ErrorMiddleware,
+		authMiddleware.Middleware,
+	))
+
+	if os.Getenv("ENVIRONMENT") == "DEV" {
+		reflection.Register(grpcServer)
+	}
 
 	auth.RegisterAuthServiceServer(grpcServer, authHandler)
 
