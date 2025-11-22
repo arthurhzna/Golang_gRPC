@@ -9,7 +9,7 @@ import (
 )
 
 type authHandler struct {
-	auth.UnimplementedAuthServiceServer // parent struct from the service package
+	auth.UnimplementedAuthServiceServer // parent struct from the package auth gengerate by protobuf
 
 	authService service.IAuthService
 }
@@ -94,6 +94,15 @@ func (sh *authHandler) ChangePassword(ctx context.Context, req *auth.ChangePassw
 	}
 
 	res, err := sh.authService.ChangePassword(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (sh *authHandler) GetProfile(ctx context.Context, req *auth.GetProfileRequest) (*auth.GetProfileResponse, error) {
+
+	res, err := sh.authService.GetProfile(ctx, req)
 	if err != nil {
 		return nil, err
 	}

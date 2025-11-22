@@ -11,7 +11,7 @@ import (
 
 type jwtEntityContextKey string
 
-var jwtEntityContextKeyValue jwtEntityContextKey = "jwtEntity"
+var JwtEntityContextKeyValue jwtEntityContextKey = "jwtEntity"
 
 type JwtClaims struct {
 	jwt.RegisteredClaims
@@ -21,7 +21,15 @@ type JwtClaims struct {
 }
 
 func (jc *JwtClaims) SetToContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, jwtEntityContextKeyValue, jc)
+	return context.WithValue(ctx, JwtEntityContextKeyValue, jc)
+}
+
+func GetClaimsFromContext(ctx context.Context) (*JwtClaims, error) {
+	claims, ok := ctx.Value(JwtEntityContextKeyValue).(*JwtClaims)
+	if !ok {
+		return nil, utils.UnaunthorizedResponse()
+	}
+	return claims, nil
 }
 
 func GetClaimsFromToken(jwtToken string) (*JwtClaims, error) {

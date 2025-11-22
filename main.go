@@ -12,6 +12,7 @@ import (
 	"github.com/arthurhzna/Golang_gRPC/internal/repository"
 	"github.com/arthurhzna/Golang_gRPC/internal/service"
 	"github.com/arthurhzna/Golang_gRPC/pb/auth"
+	"github.com/arthurhzna/Golang_gRPC/pb/product"
 	"github.com/arthurhzna/Golang_gRPC/pkg/database"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -40,6 +41,10 @@ func main() {
 	authService := service.NewAuthService(authRepository, cacheService)
 	authHandler := handler.NewAuthHandler(authService)
 
+	productRepository := repository.NewProductRepository(db)
+	productService := service.NewProductService(productRepository)
+	productHandler := handler.NewProductHandler(productService)
+
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		grpcmiddlerware.ErrorMiddleware,
 		authMiddleware.Middleware,
@@ -50,7 +55,7 @@ func main() {
 	}
 
 	auth.RegisterAuthServiceServer(grpcServer, authHandler)
-
+	product.RegisterProductServiceServer(grpcServer, productHandler)
 	grpcServer.Serve(lis)
 
 }

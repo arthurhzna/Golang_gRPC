@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/arthurhzna/Golang_gRPC/internal/entity"
 	jwtentity "github.com/arthurhzna/Golang_gRPC/internal/entity/jwt"
@@ -25,6 +26,7 @@ type IAuthService interface {
 	Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error)
 	Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error)
 	ChangePassword(ctx context.Context, req *auth.ChangePasswordRequest) (*auth.ChangePasswordResponse, error)
+	GetProfile(ctx context.Context, req *auth.GetProfileRequest) (*auth.GetProfileResponse, error)
 }
 
 type authService struct {
@@ -151,12 +153,17 @@ func (as *authService) ChangePassword(ctx context.Context, req *auth.ChangePassw
 		}, nil
 	}
 
-	jwtToken, err := jwtentity.ParseTokenFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// jwtToken, err := jwtentity.ParseTokenFromContext(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	claims, err := jwtentity.GetClaimsFromToken(jwtToken)
+	// claims, err := jwtentity.GetClaimsFromToken(jwtToken)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	claims, err := jwtentity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +200,46 @@ func (as *authService) ChangePassword(ctx context.Context, req *auth.ChangePassw
 
 	return &auth.ChangePasswordResponse{
 		Base: utils.SuccessResponse("Password changed successfully"),
+	}, nil
+
+}
+
+func (as *authService) GetProfile(ctx context.Context, req *auth.GetProfileRequest) (*auth.GetProfileResponse, error) {
+
+	claims, err := jwtentity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.authRepository.GetUserByEmail(ctx, claims.Email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return &auth.GetProfileResponse{
+			Base: utils.BadRequestResponse("User not found"),
+		}, nil
+	}
+
+	user, err = as.authRepository.GetUserByEmail(ctx, claims.Email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return &auth.GetProfileResponse{
+			Base: utils.BadRequestResponse("User not found"),
+		}, nil
+	}
+
+	return &auth.GetProfileResponse{
+		Base:        utils.SuccessResponse("Get Profile Success"),
+		UserId:      user.Id,
+		FullName:    user.FullName,
+		Email:       user.Email,
+		RoleCode:    user.RoleCode,
+		MemberSince: timestamppb.New(user.CreatedAt),
 	}, nil
 
 }

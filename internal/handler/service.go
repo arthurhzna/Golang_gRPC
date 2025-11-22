@@ -9,21 +9,21 @@ import (
 )
 
 // type IServiceHandler interface {
-	// service.HelloWorldServiceServer // interface from the service package
-	/* if im using this --> service.HelloWorldServiceServer is the interface from the service package
+// service.HelloWorldServiceServer // interface from the service package
+/* if im using this --> service.HelloWorldServiceServer is the interface from the service package
 
-	// Interface HelloWorldServiceServer (dari generated code) punya method:
-	type HelloWorldServiceServer interface {
-		HelloWorld(ctx context.Context, req *HelloWorldRequest) (*HelloWorldResponse, error)
-		mustEmbedUnimplementedHelloWorldServiceServer()
-	}
+// Interface HelloWorldServiceServer (dari generated code) punya method:
+type HelloWorldServiceServer interface {
+	HelloWorld(ctx context.Context, req *HelloWorldRequest) (*HelloWorldResponse, error)
+	mustEmbedUnimplementedHelloWorldServiceServer()
+}
 
-	// Maka IServiceHandler otomatis punya method yang sama:
-	type IServiceHandler interface {
-		HelloWorld(ctx context.Context, req *HelloWorldRequest) (*HelloWorldResponse, error)
-		mustEmbedUnimplementedHelloWorldServiceServer()
-	}
-	*/
+// Maka IServiceHandler otomatis punya method yang sama:
+type IServiceHandler interface {
+	HelloWorld(ctx context.Context, req *HelloWorldRequest) (*HelloWorldResponse, error)
+	mustEmbedUnimplementedHelloWorldServiceServer()
+}
+*/
 // 	HelloWorld(ctx context.Context, req *service.HelloWorldRequest) (*service.HelloWorldResponse, error)
 // }
 
