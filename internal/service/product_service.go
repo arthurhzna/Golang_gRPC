@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/arthurhzna/Golang_gRPC/internal/entity"
@@ -30,6 +32,17 @@ func (ps *productService) CreateProduct(ctx context.Context, req *product.Create
 
 	claims, err := jwtentity.GetClaimsFromContext(ctx)
 	if err != nil {
+		return nil, err
+	}
+
+	imagePath := filepath.Join("storage", "product", req.ImageFileName)
+	_, err = os.Stat(imagePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &product.CreateProductResponse{
+				Base: utils.BadRequestResponse("image file not found"),
+			}, nil
+		}
 		return nil, err
 	}
 
