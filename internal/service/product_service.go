@@ -21,6 +21,7 @@ type IProductService interface {
 	EditProduct(ctx context.Context, req *product.EditProductRequest) (*product.EditProductResponse, error)
 	DeleteProduct(ctx context.Context, req *product.DeleteProductRequest) (*product.DeleteProductResponse, error)
 	ListProduct(ctx context.Context, req *product.ListProductRequest) (*product.ListProductResponse, error)
+	ListProductAdmin(ctx context.Context, req *product.ListProductAdminRequest) (*product.ListProductAdminResponse, error)
 }
 
 type productService struct {
@@ -292,6 +293,41 @@ func (ps *productService) ListProduct(ctx context.Context, req *product.ListProd
 		})
 	}
 	return &product.ListProductResponse{
+		Base:       utils.SuccessResponse("List product successfully"),
+		Pagination: paginationResponse,
+		Data:       data,
+	}, nil
+}
+
+func (ps *productService) ListProductAdmin(ctx context.Context, req *product.ListProductAdminRequest) (*product.ListProductAdminResponse, error) {
+
+	claims, err := jwtentity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(claims.Role)
+
+	if claims.Role != entity.UserRoleAdmin {
+		return nil, utils.UnaunthorizedResponse()
+	}
+
+	products, paginationResponse, err := ps.productRepository.GetProductsByPaginationAdmin(ctx, req.Pagination)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []*product.ListProductAdminResponseItem = make([]*product.ListProductAdminResponseItem, 0)
+	for _, prod := range products {
+		data = append(data, &product.ListProductAdminResponseItem{
+			Id:          prod.Id,
+			Name:        prod.Name,
+			Description: prod.Description,
+			Price:       prod.Price,
+			ImageUrl:    fmt.Sprintf("%s/storage/product/%s", os.Getenv("STORAGE_SERVICE_URL"), prod.ImageFileName),
+		})
+	}
+	return &product.ListProductAdminResponse{
 		Base:       utils.SuccessResponse("List product successfully"),
 		Pagination: paginationResponse,
 		Data:       data,

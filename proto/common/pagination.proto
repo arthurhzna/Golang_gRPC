@@ -4,11 +4,17 @@ package common;
 
 option go_package = "github.com/arthurhzna/Golang_gRPC/pb/common";
 
+message PaginationSortRequest {
+    string field = 1;
+    string direction = 2;
+}
+
 message PaginationRequest {
     // int32 current_page = 1 [(buf.validate.field).int32 = {gte: 1}];
     // int32 page_size = 2 [(buf.validate.field).int32 = {gte: 1}];
     int32 current_page = 1 ;
     int32 item_per_page = 2 ;
+    PaginationSortRequest sort = 3;
 }
 
 message PaginationResponse {

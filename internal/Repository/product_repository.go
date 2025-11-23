@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/arthurhzna/Golang_gRPC/internal/entity"
@@ -16,6 +17,7 @@ type IProductRepository interface {
 	EditProduct(ctx context.Context, product *entity.Product) error
 	DeleteProduct(ctx context.Context, id string, deletedAt time.Time, deletedBy string) error
 	GetProductsByPagination(ctx context.Context, pagination *common.PaginationRequest) ([]*entity.Product, *common.PaginationResponse, error)
+	GetProductsByPaginationAdmin(ctx context.Context, pagination *common.PaginationRequest) ([]*entity.Product, *common.PaginationResponse, error)
 }
 
 type productRepository struct {
@@ -207,6 +209,75 @@ func (pr *productRepository) GetProductsByPagination(ctx context.Context, pagina
 	totalPages := (totalCount + int(pagination.ItemPerPage) - 1) / int(pagination.ItemPerPage)
 	rows, err := pr.db.QueryContext(ctx,
 		"SELECT id, name, description, price, image_file_name FROM product WHERE is_deleted = false ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+		pagination.ItemPerPage,
+		offset,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var products []*entity.Product = make([]*entity.Product, 0)
+
+	for rows.Next() {
+		var product entity.Product
+		err = rows.Scan(
+			&product.Id,
+			&product.Name,
+			&product.Description,
+			&product.Price,
+			&product.ImageFileName,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		products = append(products, &product)
+	}
+	paginationResponse := &common.PaginationResponse{
+		CurrentPage:    pagination.CurrentPage,
+		ItemPerPage:    pagination.ItemPerPage,
+		TotalItemCount: int32(totalCount),
+		TotalPageCount: int32(totalPages),
+	}
+	return products, paginationResponse, nil
+}
+
+func (pr *productRepository) GetProductsByPaginationAdmin(ctx context.Context, pagination *common.PaginationRequest) ([]*entity.Product, *common.PaginationResponse, error) {
+
+	row := pr.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM product WHERE is_deleted = false",
+	)
+
+	if row.Err() != nil {
+		return nil, nil, row.Err()
+	}
+	var totalCount int
+	err := row.Scan(&totalCount)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	offset := (pagination.CurrentPage - 1) * pagination.ItemPerPage
+	totalPages := (totalCount + int(pagination.ItemPerPage) - 1) / int(pagination.ItemPerPage)
+
+	allowedSorts := map[string]bool{
+		"name":        true,
+		"description": true,
+		"price":       true,
+	}
+
+	orderQuery := "ORDER BY created_at DESC"
+
+	if pagination.Sort != nil && allowedSorts[pagination.Sort.Field] {
+		direction := "asc"
+		if pagination.Sort.Direction == "desc" {
+			direction = "desc"
+		}
+		orderQuery = fmt.Sprintf("ORDER BY %s %s", pagination.Sort.Field, direction)
+	}
+	baseQuery := fmt.Sprintf("SELECT id, name, description, price, image_file_name FROM product WHERE is_deleted = false %s LIMIT $1 OFFSET $2", orderQuery)
+	rows, err := pr.db.QueryContext(
+		ctx,
+		baseQuery,
 		pagination.ItemPerPage,
 		offset,
 	)
