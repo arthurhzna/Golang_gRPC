@@ -15,11 +15,14 @@ github.com/andybalholm/brotli/matchfinder
 # github.com/antlr4-go/antlr/v4 v4.13.1
 ## explicit; go 1.22
 github.com/antlr4-go/antlr/v4
+# github.com/go-chi/cors v1.2.2
+## explicit; go 1.14
 # github.com/gofiber/fiber/v2 v2.52.10
 ## explicit; go 1.20
 github.com/gofiber/fiber/v2
 github.com/gofiber/fiber/v2/internal/schema
 github.com/gofiber/fiber/v2/log
+github.com/gofiber/fiber/v2/middleware/cors
 github.com/gofiber/fiber/v2/utils
 # github.com/golang-jwt/jwt/v5 v5.3.0
 ## explicit; go 1.21

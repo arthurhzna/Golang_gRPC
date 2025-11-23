@@ -23,7 +23,7 @@ func NewAuthMiddleware(cacheService *cache.Cache) *authMiddleware {
 
 func (am *authMiddleware) Middleware(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 
-	if info.FullMethod == "/auth.AuthService/Login" || info.FullMethod == "/auth.AuthService/Register" { // this path get from info.FullMethod
+	if info.FullMethod == "/auth.AuthService/Login" || info.FullMethod == "/auth.AuthService/Register" || info.FullMethod == "/product.ProductService/DetailProduct" { // this path get from info.FullMethod
 		return handler(ctx, req)
 	} // allow login and register without authentication jwt
 

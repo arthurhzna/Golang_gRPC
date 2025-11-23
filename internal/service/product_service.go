@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,6 +17,8 @@ import (
 
 type IProductService interface {
 	CreateProduct(ctx context.Context, req *product.CreateProductRequest) (*product.CreateProductResponse, error)
+	DetailProduct(ctx context.Context, req *product.DetailProductRequest) (*product.DetailProductResponse, error)
+	EditProduct(ctx context.Context, req *product.EditProductRequest) (*product.EditProductResponse, error)
 }
 
 type productService struct {
@@ -46,7 +49,7 @@ func (ps *productService) CreateProduct(ctx context.Context, req *product.Create
 		return nil, err
 	}
 
-	NewProduct := &entity.Product{
+	NewProduct := entity.Product{
 		Id:            uuid.New().String(),
 		Name:          req.Name,
 		Description:   req.Description,
@@ -56,7 +59,7 @@ func (ps *productService) CreateProduct(ctx context.Context, req *product.Create
 		CreatedBy:     claims.FullName,
 	}
 
-	err = ps.productRepository.CreateNewProduct(ctx, NewProduct)
+	err = ps.productRepository.CreateNewProduct(ctx, &NewProduct)
 	if err != nil {
 		return nil, err
 	}
@@ -64,5 +67,173 @@ func (ps *productService) CreateProduct(ctx context.Context, req *product.Create
 	return &product.CreateProductResponse{
 		Base: utils.SuccessResponse("Product created successfully"),
 		Id:   NewProduct.Id,
+	}, nil
+}
+
+func (ps *productService) DetailProduct(ctx context.Context, req *product.DetailProductRequest) (*product.DetailProductResponse, error) {
+
+	productEntity, err := ps.productRepository.GetProductById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if productEntity == nil {
+		return &product.DetailProductResponse{
+			Base: utils.NotFoundResponse("Product not found"),
+		}, nil
+	}
+
+	return &product.DetailProductResponse{
+		Base:        utils.SuccessResponse("Product detail retrieved successfully"),
+		Id:          productEntity.Id,
+		Name:        productEntity.Name,
+		Description: productEntity.Description,
+		Price:       productEntity.Price,
+		ImageUrl:    fmt.Sprintf("%s/storage/product/%s", os.Getenv("STORAGE_SERVICE_URL"), productEntity.ImageFileName),
+	}, nil
+}
+
+func (ps *productService) EditProduct(ctx context.Context, req *product.EditProductRequest) (*product.EditProductResponse, error) {
+
+	claims, err := jwtentity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	productEntity, err := ps.productRepository.GetProductById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if productEntity == nil {
+		return &product.EditProductResponse{
+			Base: utils.NotFoundResponse("Product not found"),
+		}, nil
+	}
+
+	if productEntity == nil {
+		return &product.EditProductResponse{
+			Base: utils.NotFoundResponse("Product not found"),
+		}, nil
+	}
+
+	if productEntity.ImageFileName != req.ImageFileName {
+		imagePath := filepath.Join("storage", "product", req.ImageFileName)
+		_, err = os.Stat(imagePath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return &product.EditProductResponse{
+					Base: utils.BadRequestResponse("Image file not found"),
+				}, nil
+			}
+			return nil, err
+		}
+		oldImagePath := filepath.Join("storage", "product", productEntity.ImageFileName)
+		err = os.Remove(oldImagePath)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+	/*
+		product := &entity.Product{}
+		Yang terjadi:
+		Go membuat struct baru di memory dengan semua zero values
+		Go mengembalikan pointer (alamat memory) ke struct tersebut
+
+		Memory Address: 0x1000
+		┌─────────────────────────────────┐
+		│  entity.Product (struct)        │
+		│  Id: ""                         │
+		│  Name: ""                       │
+		│  Description: ""                │
+		│  Price: 0.0                     │
+		│  ImageFileName: ""              │
+		│  CreatedAt: 0001-01-01 UTC      │
+		│  CreatedBy: ""                  │
+		│  UpdatedAt: 0001-01-01 UTC      │
+		│  UpdatedBy: nil                 │
+		│  DeletedAt: 0001-01-01 UTC      │
+		│  DeletedBy: nil                 │
+		│  IsDeleted: false               │
+		└─────────────────────────────────┘
+				↑
+				│
+		product = 0x1000 (pointer ke struct)
+
+		--------------------------------------------------------
+
+		var product *entity.Product
+
+		Yang terjadi:
+		product adalah pointer bertipe *entity.Product
+		Nilainya nil (tidak menunjuk ke struct apapun)
+		TIDAK ada struct di memory
+
+		product = nil (tidak menunjuk ke mana-mana)
+			│
+			└──> ❌ TIDAK ADA STRUCT!
+
+		product = nil
+		Tipe: *entity.Product (pointer)
+		TIDAK ada struct di memory
+		TIDAK bisa digunakan (akan panic jika akses field)
+
+		-----------------------------------------------------------
+
+		newProduct := entity.Product{}
+
+		Hasil:
+		newProduct bertipe entity.Product (struct)
+		Ini adalah data asli (bukan pointer)
+
+		Memory Address: 0x1000
+		┌─────────────────────────────────┐
+		│  newProduct (struct langsung)   │
+		│  Id: "123"                      │
+		│  Name: "Product A"              │
+		│  Description: "..."             │
+		│  Price: 100.0                   │
+		│  ...                            │
+		└─────────────────────────────────┘
+
+		newProduct = struct langsung (tipe: entity.Product)
+
+		-----------------------------------------------------------
+		func UpdateProduct(product entity.Product) error {
+			// Function menerima struct (bukan pointer)
+		}
+
+		// Panggil dengan:
+		newProduct := entity.Product{...}
+		UpdateProduct(newProduct)  // ✅ OK
+
+		func UpdateProduct(product *entity.Product) error {
+			// Function menerima pointer
+		}
+
+		// Panggil dengan:
+		newProduct := &entity.Product{...}
+		UpdateProduct(newProduct)  // ✅ OK
+	*/
+
+	newProduct := entity.Product{
+		Id:            productEntity.Id,
+		Name:          req.Name,
+		Description:   req.Description,
+		Price:         req.Price,
+		ImageFileName: req.ImageFileName,
+		UpdatedAt:     time.Now(),
+		UpdatedBy:     &claims.FullName,
+	}
+
+	err = ps.productRepository.EditProduct(ctx, &newProduct)
+	if err != nil {
+		return nil, err
+	}
+
+	return &product.EditProductResponse{
+		Base: utils.SuccessResponse("Product detail retrieved successfully"),
+		Id:   req.Id,
 	}, nil
 }

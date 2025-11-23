@@ -38,3 +38,41 @@ func (ph *productHandler) CreateProduct(ctx context.Context, req *product.Create
 	}
 	return res, nil
 }
+
+func (ph *productHandler) DetailProduct(ctx context.Context, req *product.DetailProductRequest) (*product.DetailProductResponse, error) {
+	validationErrors, err := utils.CheckValidation(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationErrors != nil {
+		return &product.DetailProductResponse{
+			Base: utils.ValidationErrorResponse(validationErrors),
+		}, nil
+	}
+
+	res, err := ph.productService.DetailProduct(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (ph *productHandler) EditProduct(ctx context.Context, req *product.EditProductRequest) (*product.EditProductResponse, error) {
+	validationErrors, err := utils.CheckValidation(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationErrors != nil {
+		return &product.EditProductResponse{
+			Base: utils.ValidationErrorResponse(validationErrors),
+		}, nil
+	}
+
+	res, err := ph.productService.EditProduct(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
