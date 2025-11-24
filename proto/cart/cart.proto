@@ -15,7 +15,7 @@ message AddProductToCartRequest {
     string product_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
 
 }
-
+ 
 message AddProductToCartResponse {
     common.BaseResponse base = 1;
     string id = 2;
