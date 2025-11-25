@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/arthurhzna/Golang_gRPC/internal/entity"
@@ -14,6 +16,7 @@ import (
 
 type ICartService interface {
 	AddProductToCart(ctx context.Context, req *cart.AddProductToCartRequest) (*cart.AddProductToCartResponse, error)
+	ListCart(ctx context.Context, req *cart.ListCartRequest) (*cart.ListCartResponse, error)
 }
 
 type cartService struct {
@@ -90,4 +93,39 @@ func (cs *cartService) AddProductToCart(ctx context.Context, req *cart.AddProduc
 		Base: utils.SuccessResponse("Product added to cart successfully"),
 		Id:   productEntity.Id,
 	}, nil
+}
+
+func (cs *cartService) ListCart(ctx context.Context, req *cart.ListCartRequest) (*cart.ListCartResponse, error) {
+	claims, err := jwtentity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	carts, err := cs.cartRepository.GetListCart(ctx, claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+	if carts == nil {
+		return &cart.ListCartResponse{
+			Base: utils.NotFoundResponse("Cart not found"),
+		}, nil
+	}
+
+	var items []*cart.ListCartResponseItem = make([]*cart.ListCartResponseItem, 0)
+	for _, cartEntity := range carts {
+		item := cart.ListCartResponseItem{
+			ProductId:       cartEntity.ProductId,
+			ProductName:     cartEntity.Product.Name,
+			ProductImageUrl: fmt.Sprintf("%s/storage/product/%s", os.Getenv("STORAGE_SERVICE_URL"), cartEntity.Product.ImageFileName),
+			ProductPrice:    cartEntity.Product.Price,
+			Quantity:        int64(cartEntity.Quantity),
+		}
+		items = append(items, &item)
+	}
+
+	return &cart.ListCartResponse{
+		Base:  utils.SuccessResponse("Cart list retrieved successfully"),
+		Items: items,
+	}, nil
+
 }

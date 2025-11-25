@@ -16,6 +16,7 @@ type cartHandler struct {
 
 type ICartService interface {
 	AddProductToCart(ctx context.Context, req *cart.AddProductToCartRequest) (*cart.AddProductToCartResponse, error)
+	ListCart(ctx context.Context, req *cart.ListCartRequest) (*cart.ListCartResponse, error)
 }
 
 func NewCartHandler(cartService service.ICartService) *cartHandler {
@@ -37,6 +38,25 @@ func (ch *cartHandler) AddProductToCart(ctx context.Context, req *cart.AddProduc
 	}
 
 	res, err := ch.cartService.AddProductToCart(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (ch *cartHandler) ListCart(ctx context.Context, req *cart.ListCartRequest) (*cart.ListCartResponse, error) {
+	validationErrors, err := utils.CheckValidation(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if validationErrors != nil {
+		return &cart.ListCartResponse{
+			Base: utils.ValidationErrorResponse(validationErrors),
+		}, nil
+	}
+
+	res, err := ch.cartService.ListCart(ctx, req)
 	if err != nil {
 		return nil, err
 	}
