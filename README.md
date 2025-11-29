@@ -418,16 +418,6 @@ test: Add tests
 chore: Update dependencies
 ```
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**blackjokie**
-
-- GitHub: [@arthurhzna](https://github.com/arthurhzna)
-
 ## 🙏 Acknowledgments
 
 - [gRPC](https://grpc.io/) - High-performance RPC framework
