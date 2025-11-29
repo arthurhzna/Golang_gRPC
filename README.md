@@ -23,10 +23,9 @@ Electronic Commerce microservice built with Go, gRPC, and REST API. Features inc
 - 🔒 **Secure** - JWT authentication, password hashing with bcrypt
 - 🐳 **Containerized** - Docker and Docker Compose ready
 - 📊 **Database** - PostgreSQL with optimized queries
-- 🔄 **Middleware** - Authentication and error handling middleware
+- 🔄 **Middleware** - gRPC auth & error middleware, REST CORS middleware
 - 📝 **Validation** - Request validation using Protocol Buffers
-- 🌐 **CORS Enabled** - Cross-Origin Resource Sharing support
-- 📦 **Caching** - In-memory caching with go-cache
+- 📦 **Caching** - In-memory caching for JWT token blacklist
 
 ## 🏗️ Architecture
 
@@ -34,12 +33,11 @@ This project follows **Clean Architecture** principles with clear separation of 
 
 | Layer | Description | Components |
 |-------|-------------|------------|
-| **Presentation** | API Interfaces | gRPC Server (50052), REST Server (3000) |
-| **Handler** | Request Handling | Auth, Product, Cart, Order, Newsletter, Webhook |
-| **Service** | Business Logic | Use Cases & Domain Logic |
-| **Repository** | Data Access | Database Operations & Queries |
+| **Presentation** | API Interfaces | **gRPC Server** (50052): Full API<br/>**REST Server** (3000): File upload, Webhook, Static files |
+| **Handler** | Request Handling | **gRPC**: Auth, Product, Cart, Order, Newsletter<br/>**REST**: Product Upload, Webhook, Storage |
+| **Service** | Business Logic | Auth, Product, Cart, Order, Newsletter, Webhook |
+| **Repository** | Data Access | Auth, Product, Cart, Order, Newsletter |
 | **Database** | Data Storage | PostgreSQL (Supabase) |
-
 
 
 ## 🛠️ Tech Stack
