@@ -1,6 +1,6 @@
-# Golang gRPC Microservice
+# Golang gRPC
 
-A Go-based Electronic Commerce microservice showcasing **gRPC implementation** with Clean Architecture. This project emphasizes gRPC best practices, including authentication middleware, Protocol Buffers validation, and efficient inter-service communication patterns.
+A Go-based Electronic Commerce showcasing **gRPC implementation** with Clean Architecture. This project emphasizes gRPC best practices, including authentication middleware, Protocol Buffers validation, and efficient inter-service communication patterns.
 
 ## 🎯 What This Project Demonstrates
 
@@ -443,4 +443,5 @@ For support, email your-email@example.com or open an issue in the GitHub reposit
 **⭐ If you find this project useful, please consider giving it a star!**
 
 Made with ❤️ using Go and gRPC
+
 
